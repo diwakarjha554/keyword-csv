@@ -18,7 +18,7 @@ export async function POST(request: NextRequest) {
 
         // Process with GPT-4
         const completion = await openai.chat.completions.create({
-            model: 'gpt-4o-mini',  // Corrected model name
+            model: 'gpt-4o-mini',  // Corrected model name from 'gpt-4o' to 'gpt-4'
             messages: messages as OpenAI.Chat.ChatCompletionMessage[], // Type assertion
             temperature: 0, // Adjust creativity
         });

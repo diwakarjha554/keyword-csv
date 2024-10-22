@@ -15,7 +15,7 @@ export async function processCsvData(csvData: string, prompt: string): Promise<P
                     data: results.data,
                 });
             },
-            error: (error: any) => {
+            error: (error: Error) => {
                 reject(error);
             },
         });

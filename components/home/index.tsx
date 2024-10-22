@@ -122,15 +122,19 @@ Remember, the goal is to create a useful, well-organized categorization that acc
         setProgress(0);
 
         try {
-            const keywordList = csvData.flat().filter((keyword) => keyword);
-            const keywordString = keywordList.join('\n');
-            let prompt = CONSTANT_PROMPT.replace('{{KEYWORD_LIST}}', keywordString);
+            const keywordList = csvData
+                .slice(0, 10000)
+                .map((row) => row[1]) // Assuming the keyword is in the first column
+                .join('\n');
+            let prompt = CONSTANT_PROMPT.replace('{{KEYWORD_LIST}}', keywordList);
 
             if (result && feedback) {
-                prompt += `\n\nPrevious result: ${JSON.stringify(result)}\n\nUser feedback: ${feedback}\n\nPlease consider the previous result and the user's feedback when generating the new result.`;
+                prompt += `\n\nPrevious result: ${JSON.stringify(
+                    result
+                )}\n\nUser feedback: ${feedback}\n\nPlease consider the previous result and the user's feedback when generating the new result.`;
             }
 
-            console.log('Constructed Prompt:', prompt);
+            // console.log('Constructed Prompt:', prompt);
 
             const response = await fetch('/api/process-csv', {
                 method: 'POST',
@@ -157,15 +161,19 @@ Remember, the goal is to create a useful, well-organized categorization that acc
                     title: 'Processing Complete',
                     description: 'Your CSV data has been processed successfully.',
                 });
+
+                console.log('Previous result:', result);
+                console.log('Feedback:', feedback);
+                console.log('New result:', data);
             } else {
                 const errorData = await response.json();
                 throw new Error(errorData.error || 'Failed to process CSV');
             }
-        } catch (error: any) {
+        } catch (error: unknown) {
             console.error('Error processing CSV:', error);
             toast({
                 title: 'Error',
-                description: error.message || 'An error occurred while processing the CSV.',
+                description: error instanceof Error ? error.message : 'An error occurred while processing the CSV.',
                 variant: 'destructive',
             });
         } finally {
@@ -199,7 +207,9 @@ Remember, the goal is to create a useful, well-organized categorization that acc
             <Card className="w-full">
                 <CardHeader>
                     <CardTitle className="text-3xl font-bold">Keyword App</CardTitle>
-                    <CardDescription className="text-lg">Upload your CSV file and process it to generate categories and tags.</CardDescription>
+                    <CardDescription className="text-lg">
+                        Upload your CSV file and process it to generate categories and tags.
+                    </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-6">
                     <FileUpload onFileUpload={handleFileUpload} fileName={csvFileName} />
@@ -214,12 +224,7 @@ Remember, the goal is to create a useful, well-organized categorization that acc
                                         onChange={(e) => setFeedback(e.target.value)}
                                     />
                                 )}
-                                <Button 
-                                    onClick={handleProcessCsv} 
-                                    disabled={isLoading} 
-                                    className="w-full"
-                                    size="lg"
-                                >
+                                <Button onClick={handleProcessCsv} disabled={isLoading} className="w-full" size="lg">
                                     {isLoading ? (
                                         <>
                                             <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
@@ -237,12 +242,7 @@ Remember, the goal is to create a useful, well-organized categorization that acc
                                         </>
                                     )}
                                 </Button>
-                                {isLoading && (
-                                    <Progress 
-                                        value={progress} 
-                                        className="w-full"
-                                    />
-                                )}
+                                {isLoading && <Progress value={progress} className="w-full" />}
                             </div>
                             {result && (
                                 <>
